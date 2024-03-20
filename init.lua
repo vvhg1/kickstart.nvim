@@ -1,24 +1,36 @@
 --[[
-
-=====================================================================
-==================== READ THIS BEFORE CONTINUING ====================
-=====================================================================
-========                                    .-----.          ========
-========         .----------------------.   | === |          ========
-========         |.-""""""""""""""""""-.|   |-----|          ========
-========         ||                    ||   | === |          ========
-========         ||   KICKSTART.NVIM   ||   |-----|          ========
-========         ||                    ||   | === |          ========
-========         ||                    ||   |-----|          ========
-========         ||:Tutor              ||   |:::::|          ========
-========         |'-..................-'|   |____o|          ========
-========         `"")----------------(""`   ___________      ========
-========        /::::::::::|  |::::::::::\  \ no mouse \     ========
-========       /:::========|  |==hjkl==:::\  \ required \    ========
-========      '""""""""""""'  '""""""""""""'  '""""""""""'   ========
-========                                                     ========
-=====================================================================
-=====================================================================
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡾⡛⢶⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⡣⣒⡫⣳⢦⣄⠀⠀⠀⠀⠀⠀⣾⠊⢭⡢⡑⢝⢷⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡿⠫⠛⠿⣾⠕⡜⣆⠀⠀⣀⡤⣺⡧⡤⡠⠕⠰⢠⠆⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣥⡞⡑⠲⢼⡟⣰⢻⣤⡾⣋⣼⣿⡧⢇⣣⠧⡇⠀⢸⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⡴⠴⠊⣞⢿⣹⣿⡿⢋⣾⣿⣿⣷⣠⣄⣾⠟⣴⣿⠙⢷⣶⢤⡤⢤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⡩⠭⠎⡼⢫⠋⢠⣿⣿⣿⣿⣿⣷⡤⠤⠾⢟⡫⠇⡆⠈⠂⠁⠀⠘⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⣖⡋⠀⠁⢠⣿⣿⣿⣿⣿⣏⠊⠻⡓⠢⠔⠀⠀⠄⠀⠀⠀⣶⣦⠌⠳⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⠋⠀⠈⠀⠘⠻⣿⠿⡻⣿⣿⣅⠀⠈⠂⠀⠀⠀⠀⠀⠀⠀⠸⡇⡕⠅⠈⢙⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⢁⣶⠀⠀⠀⣢⠾⢿⣆⠙⡜⢿⡿⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⡄⡠⠊⢖⢝⣧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⠜⠀⠀⠀⠀⠀⠀⠈⠃⡜⠁⠈⠐⢌⠛⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⡀⠀⢀⣩⢼⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢷⢠⠃⢐⣧⢿⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡾⠁⠀⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⡪⣶⡎⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡶⠋⠀⠀⠀⠀⢀⠔⠈⠀⠀⠀⠀⠀⠀⠀⢀⣠⣴⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⡜⢁⠽⡹⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠣⣄⣀⣴⠶⠶⠿⠶⠶⠶⠶⠤⠤⠖⠒⠚⠋⠉⠙⠉⠈⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡏⠀⠤⢶⣿⣹⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⡐⠒⠒⠀⠀⠀⠀⠀⠀⢀⣐⣂⣀⠀⠀⢀⡀⠔⢀⡠⠔⠁⠀⠀⠀⠀⠀⣼⡀⡞⠀⡴⠓⢻⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⠲⣶⣤⣤⣤⡤⣶⢿⠿⠿⠿⠿⠿⠟⠓⠂⠉⠁⠀⠀⠀⠀⠀⠀⠀⢀⡿⠊⠠⡱⠡⣺⡎⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⡇⡠⢹⣾⡗⣬⡇⠾⡆⠑⠢⠤⠤⠤⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⠿⠕⠊⠀⡈⠔⠒⠻⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡿⠒⢖⣿⣿⠑⣼⡱⠘⣱⠀⠀⠠⣀⠀⠀⠀⡔⡰⠀⠀⠀⠀⠀⠀⠀⢠⡷⡲⠒⠒⠉⡠⠪⢭⣕⢻⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⠃⢭⣿⣿⡇⣠⣿⡃⢠⡟⣇⠀⠐⠠⣉⠒⡊⢔⠔⠀⠀⠀⠀⠀⠀⠀⣼⠋⡀⠄⣢⣅⠀⠐⢵⣆⢀⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⠇⣐⣾⣿⣿⢹⣿⠧⠀⣼⠀⠸⡆⠀⠀⠀⠉⠉⠕⠁⠀⠀⠀⠀⠀⠀⢰⡏⢡⠀⠨⡤⠒⡂⠀⠀⠀⠇⢹⠀⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡟⠩⣽⣿⣿⠇⣾⡟⠀⢠⡧⠄⢠⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣏⠁⠀⠀⠀⠀⠸⡔⠒⠀⢴⢼⡇⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡼⠁⢸⣿⣿⠏⣴⣿⠤⠤⣾⣉⡴⠚⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⣿⡗⡁⠀⢀⠀⠀⠐⠣⠄⠀⡨⠇⣷⠀⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⠇⢉⣿⣿⡯⣤⣿⣯⣶⣪⠟⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⢹⢻⣿⡄⠈⠀⡀⠀⠀⠬⢀⣐⣊⠥⠽⣧⠀⠀⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⠀⠀⢠⡟⠘⣿⣿⡿⢛⣿⣿⣿⣧⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠜⣿⣏⢶⡊⠀⢀⡀⠀⣀⠀⠲⠀⠃⠈⠳⡄⠀⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⠀⢀⡴⠏⠀⣰⣿⣿⢔⣽⣿⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡿⠿⣼⣿⣴⣁⠄⠒⠒⠡⠐⢙⠒⠕⠁⠱⡄⠀⠀⠀⠀
+#⠀⠀⠀⠀⠀⣰⠯⣶⣡⣪⣿⣻⣿⣿⣿⣿⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⠁⣰⣿⣿⣿⣿⣦⣄⡀⠀⢀⡨⢆⠑⠐⢏⣻⡄⠀⠀⠀
+#⠀⠀⠀⠀⣼⣡⣿⢟⣝⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡤⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡰⣵⣿⣿⣿⣿⣿⣏⠁⠀⠐⠒⢈⣄⠱⡀⢻⡇⠀⠀⠀
+#⠀⠀⠀⠀⠿⢿⢇⣼⠟⠉⠀⠈⢿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣝⢿⣿⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣾⢳⣿⣿⣿⣿⣿⣿⣿⡳⢦⣀⠀⠃⠊⠒⠣⡒⢳⡄⠀⠀
+#⠀⠀⠀⠀⢀⡾⠋⠀⠀⠀⠀⠀⠈⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣝⡿⣦⡀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⡏⣾⣿⣿⣿⣿⣿⣿⣿⡇⠀⠉⠳⢤⡀⠀⠉⠙⡀⢳⡀⠀
+#⠀⠀⢀⠔⠋⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣾⣷⣄⡀⠀⠀⠀⠀⠀⣼⣿⣿⣧⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠙⠲⣄⠀⠑⡄⢷⡀
+#⢀⡴⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢘⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠀⠀⠀⠀⢠⣿⣿⣿⢹⣿⣿⣿⣿⣿⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⠘⢧⡀⢱⡈⢧
+#⡾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠀⠀⠀⠀⢸⣿⣿⣿⡟⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⢷⠈⢿⢸
 
 What is Kickstart?
 
@@ -43,18 +55,6 @@ What is Kickstart?
 
 Kickstart Guide:
 
-  TODO: The very first thing you should do is to run the command `:Tutor` in Neovim.
-
-    If you don't know what this means, type the following:
-      - <escape key>
-      - :
-      - Tutor
-      - <enter key>
-
-    (If you already know how the Neovim basics, you can skip this step)
-
-  Once you've completed that, you can continue working through **AND READING** the rest
-  of the kickstart init.lua
 
   Next, run AND READ `:help`.
     This will open up a help window with some basic information
@@ -66,23 +66,12 @@ Kickstart Guide:
     MOST IMPORTANTLY, we provide a keymap "<space>sh" to [s]earch the [h]elp documentation,
     which is very useful when you're not sure exactly what you're looking for.
 
-  I have left several `:help X` comments throughout the init.lua
-    These are hints about where to find more information about the relevant settings,
-    plugins or neovim features used in kickstart.
-
-   NOTE: Look for lines like this
-
-    Throughout the file. These are for you, the reader, to help understand what is happening.
-    Feel free to delete them once you know what you're doing, but they should serve as a guide
-    for when you are first encountering a few different constructs in your nvim config.
-
 If you experience any errors while trying to install kickstart, run `:checkhealth` for more info
 
-I hope you enjoy your Neovim journey,
-- TJ
 
-P.S. You can delete this when you're done too. It's your config now! :)
 --]]
+-- Global var for python
+-- python3_host_prog = '/usr/bin/python3'
 
 -- Set <space> as the leader key
 -- See `:help mapleader`
@@ -152,10 +141,16 @@ vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 10
+vim.opt.scrolloff = 20
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
+
+-- NOTE: personal keymap settings
+-- next buffer
+vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = '[N]ext buffer' })
+-- previous buffer
+vim.keymap.set('n', '<leader>bp', ':bprevious<CR>', { desc = '[P]revious buffer' })
 
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
@@ -237,6 +232,35 @@ require('lazy').setup({
   --  This is equivalent to:
   --    require('Comment').setup({})
 
+  -- get Harpoon
+  {
+    'ThePrimeagen/harpoon',
+    opts = {},
+    config = function()
+      require('harpoon').setup()
+      -- set up harpoon
+      local mark = require 'harpoon.mark'
+      local ui = require 'harpoon.ui'
+      vim.keymap.set('n', '<leader>a', mark.add_file, { desc = '[a]dd file to harpoon' })
+      vim.keymap.set('n', '<C-e>', ui.toggle_quick_menu, { desc = 'toggle [e]xplore harpoon' })
+      vim.keymap.set('n', '<leader>nn', function()
+        ui.nav_file(1)
+      end, { desc = '[nn]avigate first, index finger, harpoon' })
+      vim.keymap.set('n', '<leader>ne', function()
+        ui.nav_file(2)
+      end, { desc = '[n]avigate s[e]cond, middle finger, harpoon' })
+      vim.keymap.set('n', '<leader>ni', function()
+        ui.nav_file(3)
+      end, { desc = '[n]avigate th[i]rd, ring finger, harpoon' })
+      vim.keymap.set('n', '<leader>no', function()
+        ui.nav_file(4)
+      end, { desc = '[n]avigate f[o]urth, pinky, harpoon' })
+    end,
+  },
+
+  -- set up Harpoon
+
+  { 'github/copilot.vim' },
   -- "gc" to comment visual regions/lines
   { 'numToStr/Comment.nvim', opts = {} },
 
@@ -376,7 +400,6 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
-
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
         -- You can pass additional configuration to telescope to change theme, layout, etc.
@@ -742,10 +765,19 @@ require('lazy').setup({
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
       vim.cmd.colorscheme 'tokyonight-night'
+      vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
 
       -- You can configure highlights by doing something like
       vim.cmd.hi 'Comment gui=none'
     end,
+  },
+
+  {
+    'lukas-reineke/indent-blankline.nvim',
+    main = 'ibl',
+    opts = {
+      indent = { char = '▏' },
+    },
   },
 
   -- Highlight todo, notes, etc in comments
