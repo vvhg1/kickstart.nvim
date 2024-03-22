@@ -135,7 +135,17 @@ vim.opt.scrolloff = 20
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
--- NOTE: personal keymap settings
+-- WARN: personal keymap settings
+
+-- NOTE: we swap a few keys so , is repeat and ; is command and : is repeat back
+-- map ; to :
+vim.keymap.set('n', ';', ':', { noremap = true })
+-- map , to ;
+vim.keymap.set('n', ',', ';', { noremap = true })
+-- map : to ,
+vim.keymap.set('n', ':', ',', { noremap = true })
+-- map leader enter to save and close buffer
+vim.keymap.set('n', '<leader><CR>', ':w<CR>:bd<CR>', { desc = 'Save and close buffer' })
 -- next buffer
 vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = '[N]ext buffer' })
 -- previous buffer
@@ -232,18 +242,31 @@ require('lazy').setup({
       local ui = require 'harpoon.ui'
       vim.keymap.set('n', '<leader>a', mark.add_file, { desc = '[a]dd file to harpoon' })
       vim.keymap.set('n', '<leader>h', ui.toggle_quick_menu, { desc = 'toggle [e]xplore harpoon' })
+      -- navigate files with harpoon and center cursor
       vim.keymap.set('n', '<leader>n', function()
         ui.nav_file(1)
+        vim.cmd 'norm zz'
       end, { desc = '[nn]avigate first, index finger, harpoon' })
       vim.keymap.set('n', '<leader>e', function()
         ui.nav_file(2)
+        vim.cmd 'norm zz'
       end, { desc = '[n]avigate s[e]cond, middle finger, harpoon' })
       vim.keymap.set('n', '<leader>i', function()
         ui.nav_file(3)
+        vim.cmd 'norm zz'
       end, { desc = '[n]avigate th[i]rd, ring finger, harpoon' })
       vim.keymap.set('n', '<leader>o', function()
         ui.nav_file(4)
+        vim.cmd 'norm zz'
       end, { desc = '[n]avigate f[o]urth, pinky, harpoon' })
+    end,
+  },
+
+  -- get nvim-colorizer
+  {
+    'norcalli/nvim-colorizer.lua',
+    config = function()
+      require('colorizer').setup()
     end,
   },
 
@@ -263,7 +286,10 @@ require('lazy').setup({
   {
     'f-person/git-blame.nvim',
     config = function()
-      require('gitblame').setup()
+      require('gitblame').setup {
+        enabled = false,
+        highlight_group = 'Operator',
+      }
       vim.keymap.set('n', '<leader>gb', '<cmd>GitBlameToggle<CR>', { desc = '[G]it [B]lame' })
     end,
   },
@@ -281,11 +307,12 @@ require('lazy').setup({
     'lewis6991/gitsigns.nvim',
     opts = {
       signs = {
-        add = { text = '+' },
-        change = { text = '~' },
-        delete = { text = '_' },
+        add = { text = '│' },
+        change = { text = '│' },
+        delete = { text = '│' },
         topdelete = { text = '‾' },
         changedelete = { text = '~' },
+        untracked = { text = '┆' },
       },
     },
   },
@@ -704,7 +731,8 @@ require('lazy').setup({
             luasnip.lsp_expand(args.body)
           end,
         },
-        completion = { completeopt = 'menu,menuone,noinsert' },
+        completion = { autocomplete = false },
+        -- completion = { completeopt = 'menu,menuone,noinsert' },
 
         -- For an understanding of why these mappings were
         -- chosen, you will need to read `:help ins-completion`
@@ -728,7 +756,14 @@ require('lazy').setup({
           -- Manually trigger a completion from nvim-cmp.
           --  Generally you don't need this, because nvim-cmp will display
           --  completions whenever it has completion options available.
-          ['<C-Space>'] = cmp.mapping.complete {},
+          --  we want this to toggle the completion menu
+          ['<C-Space>'] = function()
+            if cmp.visible() then
+              cmp.close()
+            else
+              cmp.complete()
+            end
+          end,
 
           -- Think of <c-l> as moving to the right of your snippet expansion.
           --  So if you have a snippet that's like:
@@ -789,7 +824,24 @@ require('lazy').setup({
   },
 
   -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+  {
+    'folke/todo-comments.nvim',
+    event = 'VimEnter',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = { signs = false },
+    -- define some colors for the todo comments
+    config = function()
+      require('todo-comments').setup {
+        signs = false,
+        keywords = {
+          FIX = { icon = '', color = '#F200FF' },
+          TODO = { icon = '', color = '#ff9e64' },
+          HACK = { icon = '', color = '#9d7cd8' },
+          WARN = { icon = '', color = '#F200FF' },
+        },
+      }
+    end,
+  },
 
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
