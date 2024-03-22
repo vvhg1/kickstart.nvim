@@ -34,15 +34,6 @@
 
 What is Kickstart?
 
-  Kickstart.nvim is *not* a distribution.
-
-  Kickstart.nvim is a starting point for your own configuration.
-    The goal is that you can read every line of code, top-to-bottom, understand
-    what your configuration is doing, and modify it to suit your needs.
-
-    Once you've done that, you can start exploring, configuring and tinkering to
-    make Neovim your own! That might mean leaving kickstart just the way it is for a while
-    or immediately breaking it into modular pieces. It's up to you!
 
     If you don't know anything about Lua, I recommend taking some time to read through
     a guide. One possible example which will only take 10-15 minutes:
@@ -51,7 +42,6 @@ What is Kickstart?
     After understanding a bit more about Lua, you can use `:help lua-guide` as a
     reference for how Neovim integrates Lua.
     - :help lua-guide
-    - (or HTML version): https://neovim.io/doc/user/lua-guide.html
 
 Kickstart Guide:
 
@@ -74,7 +64,6 @@ If you experience any errors while trying to install kickstart, run `:checkhealt
 -- python3_host_prog = '/usr/bin/python3'
 
 -- Set <space> as the leader key
--- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
@@ -159,7 +148,7 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagnostic message' })
-vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
+vim.keymap.set('n', '<leader>L', vim.diagnostic.open_float, { desc = 'Show diagnostic Error messages [L]og' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
@@ -242,23 +231,42 @@ require('lazy').setup({
       local mark = require 'harpoon.mark'
       local ui = require 'harpoon.ui'
       vim.keymap.set('n', '<leader>a', mark.add_file, { desc = '[a]dd file to harpoon' })
-      vim.keymap.set('n', '<C-e>', ui.toggle_quick_menu, { desc = 'toggle [e]xplore harpoon' })
-      vim.keymap.set('n', '<leader>nn', function()
+      vim.keymap.set('n', '<leader>h', ui.toggle_quick_menu, { desc = 'toggle [e]xplore harpoon' })
+      vim.keymap.set('n', '<leader>n', function()
         ui.nav_file(1)
       end, { desc = '[nn]avigate first, index finger, harpoon' })
-      vim.keymap.set('n', '<leader>ne', function()
+      vim.keymap.set('n', '<leader>e', function()
         ui.nav_file(2)
       end, { desc = '[n]avigate s[e]cond, middle finger, harpoon' })
-      vim.keymap.set('n', '<leader>ni', function()
+      vim.keymap.set('n', '<leader>i', function()
         ui.nav_file(3)
       end, { desc = '[n]avigate th[i]rd, ring finger, harpoon' })
-      vim.keymap.set('n', '<leader>no', function()
+      vim.keymap.set('n', '<leader>o', function()
         ui.nav_file(4)
       end, { desc = '[n]avigate f[o]urth, pinky, harpoon' })
     end,
   },
 
-  -- set up Harpoon
+  -- get Chainsaw
+  {
+    'vvhg1/nvim-chainsaw',
+    opts = {},
+    config = function()
+      require('chainsaw').setup()
+      -- vim.keymap.set('n', '<leader>l', ':bnext<CR>', { desc = 'insert log/print statement' })
+      -- require("chainsaw").variableLog()
+      vim.keymap.set('n', '<leader>l', require('chainsaw').variableLog, { desc = 'insert log/print statement' })
+    end,
+  },
+
+  -- git blame
+  {
+    'f-person/git-blame.nvim',
+    config = function()
+      require('gitblame').setup()
+      vim.keymap.set('n', '<leader>gb', '<cmd>GitBlameToggle<CR>', { desc = '[G]it [B]lame' })
+    end,
+  },
 
   { 'github/copilot.vim' },
   -- "gc" to comment visual regions/lines
