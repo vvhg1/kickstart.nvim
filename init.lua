@@ -138,12 +138,33 @@ vim.opt.scrolloff = 20
 -- WARN: personal keymap settings
 
 -- NOTE: we swap a few keys so , is repeat and ; is command and : is repeat back
--- map ; to :
 vim.keymap.set('n', ';', ':', { noremap = true })
--- map , to ;
 vim.keymap.set('n', ',', ';', { noremap = true })
--- map : to ,
 vim.keymap.set('n', ':', ',', { noremap = true })
+
+-- move highlighted line up and down with alt arrow up and down instead of j and k
+vim.keymap.set('v', '<A-up>', ":m '<-2<CR>gv=gv", { noremap = true })
+vim.keymap.set('v', '<A-down>', ":m '>+1<CR>gv=gv", { noremap = true })
+-- add shift for copy line up and down in normal and visual mode
+vim.keymap.set('n', '<A-S-up>', ':t.<CR><up>', { noremap = true })
+vim.keymap.set('n', '<A-S-down>', ':t.<CR>', { noremap = true })
+-- we need a function for copying blocks of text up and down
+vim.keymap.set('v', '<A-S-up>', function()
+  -- Get the starting and ending line numbers of the visual selection
+  -- start the undo block
+  local start_line = vim.fn.line 'v'
+  local end_line = vim.fn.line '.'
+
+  -- Get the contents of the visual selection
+  local selected_lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
+
+  -- Duplicate the visual selection
+  vim.api.nvim_buf_set_lines(0, end_line, end_line, false, selected_lines)
+end, { noremap = true })
+
+-- remap page up and down to half page up and down and center cursor
+vim.keymap.set('n', '<PageUp>', '<C-u>zz', { noremap = true })
+vim.keymap.set('n', '<PageDown>', '<C-d>zz', { noremap = true })
 -- map leader enter to save and close buffer
 vim.keymap.set('n', '<leader><CR>', ':w<CR>:bd<CR>', { desc = 'Save and close buffer' })
 -- next buffer
@@ -168,12 +189,6 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
-
--- TIP: Disable arrow keys in normal mode
--- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
--- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
--- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
--- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
@@ -231,6 +246,21 @@ require('lazy').setup({
   --  This is equivalent to:
   --    require('Comment').setup({})
 
+  -- get UndoTree
+  {
+    'mbbill/undotree',
+    opts = {},
+    config = function()
+      -- we want to toggle and if open, focus on the window
+      vim.keymap.set('n', '<leader>u', function()
+        vim.cmd 'UndotreeToggle'
+        if vim.fn.bufwinnr 'undotree' ~= -1 then
+          vim.cmd 'wincmd p'
+        end
+      end, { desc = '[U]ndo tree' })
+    end,
+  },
+
   -- get Harpoon
   {
     'ThePrimeagen/harpoon',
@@ -241,7 +271,7 @@ require('lazy').setup({
       local mark = require 'harpoon.mark'
       local ui = require 'harpoon.ui'
       vim.keymap.set('n', '<leader>a', mark.add_file, { desc = '[a]dd file to harpoon' })
-      vim.keymap.set('n', '<leader>h', ui.toggle_quick_menu, { desc = 'toggle [e]xplore harpoon' })
+      vim.keymap.set('n', '<leader>h', ui.toggle_quick_menu, { desc = 'toggle [h]arpoon' })
       -- navigate files with harpoon and center cursor
       vim.keymap.set('n', '<leader>n', function()
         ui.nav_file(1)
@@ -263,13 +293,13 @@ require('lazy').setup({
   },
 
   -- get nvim-colorizer
-  {
-    'norcalli/nvim-colorizer.lua',
-    config = function()
-      require('colorizer').setup()
-    end,
-  },
-
+  -- {
+  --   'norcalli/nvim-colorizer.lua',
+  --   config = function()
+  --     require('colorizer').setup()
+  --   end,
+  -- },
+  --
   -- get Chainsaw
   {
     'vvhg1/nvim-chainsaw',
@@ -282,17 +312,17 @@ require('lazy').setup({
     end,
   },
 
-  -- git blame
-  {
-    'f-person/git-blame.nvim',
-    config = function()
-      require('gitblame').setup {
-        enabled = false,
-        highlight_group = 'Operator',
-      }
-      vim.keymap.set('n', '<leader>gb', '<cmd>GitBlameToggle<CR>', { desc = '[G]it [B]lame' })
-    end,
-  },
+  -- git blame, not needed as we have gitsigns
+  -- {
+  --   'f-person/git-blame.nvim',
+  --   config = function()
+  --     require('gitblame').setup {
+  --       enabled = false,
+  --       highlight_group = 'Operator',
+  --     }
+  --     vim.keymap.set('n', '<leader>gb', '<cmd>GitBlameToggle<CR>', { desc = '[G]it [B]lame' })
+  --   end,
+  -- },
 
   { 'github/copilot.vim' },
   -- "gc" to comment visual regions/lines
@@ -314,6 +344,10 @@ require('lazy').setup({
         changedelete = { text = '~' },
         untracked = { text = '┆' },
       },
+      on_attach = function()
+        local gs = package.loaded.gitsigns
+        vim.keymap.set('n', '<leader>gb', gs.toggle_current_line_blame)
+      end,
     },
   },
 
@@ -345,6 +379,8 @@ require('lazy').setup({
         ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
         ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
         ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
+        ['<leader>b'] = { name = '[B]uffer', _ = 'which_key_ignore' },
+        ['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
       }
     end,
   },
@@ -801,7 +837,8 @@ require('lazy').setup({
     -- change the command in the config to whatever the name of that colorscheme is
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`
-    'folke/tokyonight.nvim',
+    'vvhg1/tokyonight.nvim',
+    branch = 'easyeyes',
     priority = 1000, -- make sure to load this before all the other start plugins
     init = function()
       -- Load the colorscheme here.
@@ -834,10 +871,10 @@ require('lazy').setup({
       require('todo-comments').setup {
         signs = false,
         keywords = {
-          FIX = { icon = '', color = '#F200FF' },
-          TODO = { icon = '', color = '#ff9e64' },
-          HACK = { icon = '', color = '#9d7cd8' },
-          WARN = { icon = '', color = '#F200FF' },
+          FIX = { icon = '', color = '#F200FF', alt = { 'FIXME', 'Fix', 'Fixme', 'fix', 'fixme' } },
+          TODO = { icon = '', color = '#8af5fd', alt = { 'info', 'INFO', 'todo', 'Todo', 'Info' } },
+          HACK = { icon = '', color = '#9d7cd8', alt = { 'hack', 'Hack' } },
+          WARN = { icon = '', color = '#F200FF', alt = { 'WARNING', 'XXX', 'Warning', 'warning', 'Warn', 'warn' } },
         },
       }
     end,
