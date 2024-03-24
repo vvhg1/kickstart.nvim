@@ -32,29 +32,9 @@
 #⢀⡴⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢘⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠀⠀⠀⠀⢠⣿⣿⣿⢹⣿⣿⣿⣿⣿⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⠘⢧⡀⢱⡈⢧
 #⡾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠀⠀⠀⠀⢸⣿⣿⣿⡟⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⢷⠈⢿⢸
 
-What is Kickstart?
-
-
-    If you don't know anything about Lua, I recommend taking some time to read through
-    a guide. One possible example which will only take 10-15 minutes:
-      - https://learnxinyminutes.com/docs/lua/
-
-    After understanding a bit more about Lua, you can use `:help lua-guide` as a
-    reference for how Neovim integrates Lua.
     - :help lua-guide
 
 Kickstart Guide:
-
-
-  Next, run AND READ `:help`.
-    This will open up a help window with some basic information
-    about reading, navigating and searching the builtin help documentation.
-
-    This should be the first place you go to look when you're stuck or confused
-    with something. It's one of my favorite neovim features.
-
-    MOST IMPORTANTLY, we provide a keymap "<space>sh" to [s]earch the [h]elp documentation,
-    which is very useful when you're not sure exactly what you're looking for.
 
 If you experience any errors while trying to install kickstart, run `:checkhealth` for more info
 
@@ -78,8 +58,6 @@ vim.g.have_nerd_font = false
 
 -- Make line numbers default
 vim.opt.number = true
--- You can also add relative line numbers, for help with jumping.
---  Experiment for yourself to see if you like it!
 -- vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
@@ -130,7 +108,6 @@ vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
--- we want to calculate the number of lines based on the height of the window
 vim.api.nvim_create_autocmd({ 'VimResized', 'VimEnter' }, {
   desc = 'Calculate the number of lines based on the height of the window',
   callback = function()
@@ -160,14 +137,25 @@ vim.api.nvim_create_autocmd('CursorMoved', {
   desc = 'Adjust scrolloff to leave blank space at the bottom',
   callback = AdjustScrolloff,
 })
+
 --  See `:help vim.keymap.set()`
 
 -- WARN: personal keymap settings
 
--- NOTE: we swap a few keys so , is repeat and ; is command and : is repeat back
+-- we swap a few keys so , is repeat and ; is command and : is repeat backwards
 vim.keymap.set('n', ';', ':', { noremap = true })
 vim.keymap.set('n', ',', ';', { noremap = true })
 vim.keymap.set('n', ':', ',', { noremap = true })
+
+-- remap HOME so it toggles between first non-blank and first column
+vim.keymap.set('n', '<Home>', function()
+  -- if we are on '^' go to first column
+  local current_col = vim.fn.col '.'
+  vim.cmd 'normal! ^'
+  if vim.fn.col '.' == current_col then
+    vim.cmd 'normal! 0'
+  end
+end, { noremap = true })
 
 -- fix for concat line cursor position
 vim.keymap.set('n', 'J', 'mzJ`z', { noremap = true })
@@ -184,6 +172,7 @@ vim.keymap.set('n', '<leader>Y', '"+Y', { noremap = true })
 vim.keymap.set('n', '<leader>p', '"+p', { noremap = true })
 vim.keymap.set('n', '<leader>P', '"+P', { noremap = true })
 vim.keymap.set('v', '<leader>p', '"+p', { noremap = true })
+
 -- keep buffer after paste
 -- vim.keymap.set('x', '<leader>p', "\"_dP', { noremap = true })
 
@@ -197,9 +186,11 @@ vim.keymap.set('n', '<A-up>', ':m .-2<CR>==', { noremap = true })
 vim.keymap.set('n', '<A-down>', ':m .+1<CR>==', { noremap = true })
 vim.keymap.set('v', '<A-up>', ":m '<-2<CR>gv=gv", { noremap = true })
 vim.keymap.set('v', '<A-down>', ":m '>+1<CR>gv=gv", { noremap = true })
+
 -- add shift for copy line up and down in normal and visual mode
 vim.keymap.set('n', '<A-S-up>', ':t.<CR><up>', { noremap = true })
 vim.keymap.set('n', '<A-S-down>', ':t.<CR>', { noremap = true })
+
 -- copying blocks of text up and down
 vim.keymap.set('v', '<A-S-up>', function()
   -- Get the starting and ending line numbers of the visual selection
@@ -235,20 +226,22 @@ local toggle_terminal = function()
       -- if focused, hide the terminal, but keep the buffer
       vim.cmd(win_id .. 'wincmd c')
     else
-      -- if not focused, we want to show the existing terminal, we use :split #{num} to focus on the window
       vim.cmd('split | buffer ' .. term_buf .. ' | resize 12')
       vim.api.nvim_feedkeys('i', 'n', true)
     end
   end
 end
+
 -- toggle my bash terminal in split bottom
 vim.keymap.set('n', '<leader>t', toggle_terminal, { desc = '[T]oggle terminal' })
--- open terminal in split bottom if not already open, otherwise focus on it if open, close if focused
+--
 -- remap page up and down to half page up and down and center cursor
 vim.keymap.set('n', '<PageUp>', '<C-u>zz', { noremap = true })
 vim.keymap.set('n', '<PageDown>', '<C-d>zz', { noremap = true })
--- map leader enter to save and close buffer on leader shift+enter
+--
+-- map leader Shift+s to save and close buffer on leader shift+enter
 vim.keymap.set('n', '<leader><S-s>', ':w<CR>:bd<CR>', { desc = '[S]ave and close buffer' })
+
 -- next buffer
 vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = '[b]uffer [n]ext' })
 -- previous buffer
@@ -264,20 +257,12 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagn
 vim.keymap.set('n', '<leader>L', vim.diagnostic.open_float, { desc = 'Show diagnostic Error messages [L]og' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
--- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
--- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
--- is not what someone will guess without a bit more experience.
---
--- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
+-- Exit terminal mode in the builtin terminal with a double <Esc>
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', function()
-  -- '<C-\\><C-n><leader>t', { noremap = true })
-  -- vim.api.nvim_feedkeys('<Esc>', 'n', true)
-  -- we need to wait a bit for the terminal to exit
   vim.defer_fn(function()
     vim.cmd 'stopinsert'
   end, 50)
-  -- then we execute the toggle terminal function
   toggle_terminal()
 end, { noremap = true })
 
