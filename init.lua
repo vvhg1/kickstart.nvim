@@ -130,7 +130,16 @@ vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 20
+-- we want to calculate the number of lines based on the height of the window
+-- we need to do this on resize and on startup as autocommand
+vim.api.nvim_create_autocmd({ 'VimResized', 'VimEnter' }, {
+  desc = 'Calculate the number of lines based on the height of the window',
+  callback = function()
+    -- if larger than 80 lines, set to 35, otherwise set to height / 2 - 15
+    local visible_lines = vim.o.lines > 80 and 35 or math.floor(vim.o.lines / 2) - 15
+    vim.opt.scrolloff = visible_lines
+  end,
+})
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -142,31 +151,73 @@ vim.keymap.set('n', ';', ':', { noremap = true })
 vim.keymap.set('n', ',', ';', { noremap = true })
 vim.keymap.set('n', ':', ',', { noremap = true })
 
+-- insert new line at cursor position
+vim.keymap.set('n', '<leader><CR>', 'i<CR><Esc>', { noremap = true })
+-- open explorer
+vim.keymap.set('n', '<leader>x', ':Explore<CR>', { noremap = true })
+
 -- move highlighted line up and down with alt arrow up and down instead of j and k
+vim.keymap.set('n', '<A-up>', ':m .-2<CR>==', { noremap = true })
+vim.keymap.set('n', '<A-down>', ':m .+1<CR>==', { noremap = true })
 vim.keymap.set('v', '<A-up>', ":m '<-2<CR>gv=gv", { noremap = true })
 vim.keymap.set('v', '<A-down>', ":m '>+1<CR>gv=gv", { noremap = true })
 -- add shift for copy line up and down in normal and visual mode
 vim.keymap.set('n', '<A-S-up>', ':t.<CR><up>', { noremap = true })
 vim.keymap.set('n', '<A-S-down>', ':t.<CR>', { noremap = true })
--- we need a function for copying blocks of text up and down
+-- copying blocks of text up and down
 vim.keymap.set('v', '<A-S-up>', function()
   -- Get the starting and ending line numbers of the visual selection
-  -- start the undo block
   local start_line = vim.fn.line 'v'
   local end_line = vim.fn.line '.'
-
   -- Get the contents of the visual selection
   local selected_lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
-
   -- Duplicate the visual selection
   vim.api.nvim_buf_set_lines(0, end_line, end_line, false, selected_lines)
 end, { noremap = true })
+-- same for down
+vim.keymap.set('v', '<A-S-down>', function()
+  -- Get the starting and ending line numbers of the visual selection
+  local start_line = vim.fn.line 'v'
+  local end_line = vim.fn.line '.'
+  -- Get the contents of the visual selection
+  local selected_lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
+  -- Duplicate the visual selection
+  vim.api.nvim_buf_set_lines(0, start_line - 1, start_line - 1, false, selected_lines)
+  vim.cmd 'undojoin'
+end, { noremap = true })
 
+-- toggle my bash terminal in split bottom
+-- open terminal in split bottom if not already open, otherwise focus on it if open, close if focused
+vim.keymap.set('n', '<leader>t', function()
+  -- buffer looks like term://~/some/dir//3687428:bash
+  -- grep the buffer list for the term://*:bash
+  local term_buf = vim.fn.bufnr 'term://*:bash'
+  if term_buf == -1 then
+    print 'not found'
+    -- if not found, open a new terminal and focus on it
+    vim.cmd 'botright 12split term://bash'
+  else
+    print 'found'
+    -- check if the terminal is focused
+    local win_id = vim.fn.bufwinnr(term_buf)
+    if win_id ~= -1 then
+      print 'focused'
+      -- if focused, hide the terminal, but keep the buffer
+      vim.cmd(win_id .. 'wincmd c')
+      -- we also need to send an 'i' to the terminal for the vim mode insert, but as keystroke not as command
+    else
+      print(term_buf)
+      -- if not focused, we want to show the existing terminal, we use :split #{num} to focus on the window
+      vim.cmd('split | buffer ' .. term_buf .. ' | resize 12')
+      vim.api.nvim_feedkeys('i', 'n', true)
+    end
+  end
+end, { noremap = true })
 -- remap page up and down to half page up and down and center cursor
 vim.keymap.set('n', '<PageUp>', '<C-u>zz', { noremap = true })
 vim.keymap.set('n', '<PageDown>', '<C-d>zz', { noremap = true })
--- map leader enter to save and close buffer
-vim.keymap.set('n', '<leader><CR>', ':w<CR>:bd<CR>', { desc = 'Save and close buffer' })
+-- map leader enter to save and close buffer on leader shift+enter
+vim.keymap.set('n', '<leader><S-s>', ':w<CR>:bd<CR>', { desc = 'Save and close buffer' })
 -- next buffer
 vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = '[N]ext buffer' })
 -- previous buffer
@@ -246,6 +297,17 @@ require('lazy').setup({
   --  This is equivalent to:
   --    require('Comment').setup({})
 
+  -- multi cursor
+  {
+    'mg979/vim-visual-multi',
+    opts = {},
+    config = function()
+      vim.keymap.set('n', '<C-n>', '<Plug>(VM-Create)', { desc = 'Create multi-cursor' })
+      vim.keymap.set('n', '<C-p>', '<Plug>(VM-Create-Select)', { desc = 'Create and select multi-cursor' })
+      vim.keymap.set('v', '<C-n>', '<Plug>(VM-Create)', { desc = 'Create multi-cursor' })
+      vim.keymap.set('v', '<C-p>', '<Plug>(VM-Create-Select)', { desc = 'Create and select multi-cursor' })
+    end,
+  },
   -- get UndoTree
   {
     'mbbill/undotree',
@@ -312,18 +374,6 @@ require('lazy').setup({
     end,
   },
 
-  -- git blame, not needed as we have gitsigns
-  -- {
-  --   'f-person/git-blame.nvim',
-  --   config = function()
-  --     require('gitblame').setup {
-  --       enabled = false,
-  --       highlight_group = 'Operator',
-  --     }
-  --     vim.keymap.set('n', '<leader>gb', '<cmd>GitBlameToggle<CR>', { desc = '[G]it [B]lame' })
-  --   end,
-  -- },
-
   { 'github/copilot.vim' },
   -- "gc" to comment visual regions/lines
   { 'numToStr/Comment.nvim', opts = {} },
@@ -346,7 +396,7 @@ require('lazy').setup({
       },
       on_attach = function()
         local gs = package.loaded.gitsigns
-        vim.keymap.set('n', '<leader>gb', gs.toggle_current_line_blame)
+        vim.keymap.set('n', '<leader>Gb', gs.toggle_current_line_blame)
       end,
     },
   },
@@ -380,7 +430,8 @@ require('lazy').setup({
         ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
         ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
         ['<leader>b'] = { name = '[B]uffer', _ = 'which_key_ignore' },
-        ['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
+        ['<leader>G'] = { name = '[G]it', _ = 'which_key_ignore' },
+        ['<leader>g'] = { name = '[G]rep', _ = 'which_key_ignore' },
       }
     end,
   },
@@ -471,6 +522,15 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      -- finding cword and cWORD
+      vim.keymap.set('n', '<leader>gw', function()
+        local word = vim.fn.expand '<cword>'
+        builtin.grep_string { search = word }
+      end, { desc = '[g]rep [w]ord' })
+      vim.keymap.set('n', '<leader>gW', function()
+        local word = vim.fn.expand '<cWORD>'
+        builtin.grep_string { search = word }
+      end, { desc = '[g]rep [W]ORD' })
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
         -- You can pass additional configuration to telescope to change theme, layout, etc.
@@ -922,7 +982,7 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'c', 'html', 'lua', 'markdown', 'vim', 'vimdoc' },
+      ensure_installed = { 'python', 'markdown', 'css', 'javascript', 'bash', 'c', 'html', 'lua', 'markdown', 'vim', 'vimdoc' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
