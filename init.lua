@@ -186,22 +186,18 @@ vim.keymap.set('v', '<A-S-down>', function()
   vim.cmd 'undojoin'
 end, { noremap = true })
 
--- toggle my bash terminal in split bottom
--- open terminal in split bottom if not already open, otherwise focus on it if open, close if focused
-vim.keymap.set('n', '<leader>t', function()
+local toggle_terminal = function()
   -- buffer looks like term://~/some/dir//3687428:bash
   -- grep the buffer list for the term://*:bash
   local term_buf = vim.fn.bufnr 'term://*:bash'
   if term_buf == -1 then
-    print 'not found'
     -- if not found, open a new terminal and focus on it
     vim.cmd 'botright 12split term://bash'
+    vim.api.nvim_feedkeys('i', 'n', true)
   else
-    print 'found'
     -- check if the terminal is focused
     local win_id = vim.fn.bufwinnr(term_buf)
     if win_id ~= -1 then
-      print 'focused'
       -- if focused, hide the terminal, but keep the buffer
       vim.cmd(win_id .. 'wincmd c')
       -- we also need to send an 'i' to the terminal for the vim mode insert, but as keystroke not as command
@@ -212,16 +208,19 @@ vim.keymap.set('n', '<leader>t', function()
       vim.api.nvim_feedkeys('i', 'n', true)
     end
   end
-end, { noremap = true })
+end
+-- toggle my bash terminal in split bottom
+vim.keymap.set('n', '<leader>t', toggle_terminal, { desc = '[T]oggle terminal' })
+-- open terminal in split bottom if not already open, otherwise focus on it if open, close if focused
 -- remap page up and down to half page up and down and center cursor
 vim.keymap.set('n', '<PageUp>', '<C-u>zz', { noremap = true })
 vim.keymap.set('n', '<PageDown>', '<C-d>zz', { noremap = true })
 -- map leader enter to save and close buffer on leader shift+enter
-vim.keymap.set('n', '<leader><S-s>', ':w<CR>:bd<CR>', { desc = 'Save and close buffer' })
+vim.keymap.set('n', '<leader><S-s>', ':w<CR>:bd<CR>', { desc = '[S]ave and close buffer' })
 -- next buffer
-vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = '[N]ext buffer' })
+vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = '[b]uffer [n]ext' })
 -- previous buffer
-vim.keymap.set('n', '<leader>bp', ':bprevious<CR>', { desc = '[P]revious buffer' })
+vim.keymap.set('n', '<leader>bp', ':bprevious<CR>', { desc = '[b]uffer [p]revious' })
 
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
@@ -239,7 +238,16 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 --
 -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
 -- or just use <C-\><C-n> to exit terminal mode
-vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+vim.keymap.set('t', '<Esc><Esc>', function()
+  -- '<C-\\><C-n><leader>t', { noremap = true })
+  -- vim.api.nvim_feedkeys('<Esc>', 'n', true)
+  -- we need to wait a bit for the terminal to exit
+  vim.defer_fn(function()
+    vim.cmd 'stopinsert'
+  end, 50)
+  -- then we execute the toggle terminal function
+  toggle_terminal()
+end, { noremap = true })
 
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
