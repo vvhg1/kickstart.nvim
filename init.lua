@@ -187,8 +187,6 @@ vim.keymap.set('v', '<A-S-down>', function()
 end, { noremap = true })
 
 local toggle_terminal = function()
-  -- buffer looks like term://~/some/dir//3687428:bash
-  -- grep the buffer list for the term://*:bash
   local term_buf = vim.fn.bufnr 'term://*:bash'
   if term_buf == -1 then
     -- if not found, open a new terminal and focus on it
@@ -200,9 +198,7 @@ local toggle_terminal = function()
     if win_id ~= -1 then
       -- if focused, hide the terminal, but keep the buffer
       vim.cmd(win_id .. 'wincmd c')
-      -- we also need to send an 'i' to the terminal for the vim mode insert, but as keystroke not as command
     else
-      print(term_buf)
       -- if not focused, we want to show the existing terminal, we use :split #{num} to focus on the window
       vim.cmd('split | buffer ' .. term_buf .. ' | resize 12')
       vim.api.nvim_feedkeys('i', 'n', true)
