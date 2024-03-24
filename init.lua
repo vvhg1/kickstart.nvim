@@ -91,7 +91,7 @@ vim.opt.showmode = false
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
-vim.opt.clipboard = 'unnamedplus'
+-- vim.opt.clipboard = 'unnamedplus'
 
 -- Enable break indent
 vim.opt.breakindent = true
@@ -131,17 +131,36 @@ vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
 -- we want to calculate the number of lines based on the height of the window
--- we need to do this on resize and on startup as autocommand
 vim.api.nvim_create_autocmd({ 'VimResized', 'VimEnter' }, {
   desc = 'Calculate the number of lines based on the height of the window',
   callback = function()
     -- if larger than 80 lines, set to 35, otherwise set to height / 2 - 15
-    local visible_lines = vim.o.lines > 80 and 35 or math.floor(vim.o.lines / 2) - 15
+    print(math.floor((vim.o.lines - 15) / 2))
+    local visible_lines = vim.o.lines > 80 and 35 or math.floor((vim.o.lines - 15) / 2)
     vim.opt.scrolloff = visible_lines
   end,
 })
 
--- [[ Basic Keymaps ]]
+--- Function to adjust scrolloff to leave blank space at the bottom
+local AdjustScrolloff = function()
+  local current_line = vim.fn.line '.'
+  local top_line = vim.fn.line 'w0'
+  local lines_from_top = current_line - top_line
+
+  local win_height = vim.fn.winheight(0)
+  local scrolloff = vim.o.scrolloff
+  local max_lines_from_top = win_height - scrolloff
+
+  if lines_from_top > max_lines_from_top then
+    vim.fn.winrestview { topline = current_line - max_lines_from_top }
+  end
+end
+
+-- Set up autocmd to call AdjustScrolloff whenever the CursorMoved event is triggered
+vim.api.nvim_create_autocmd('CursorMoved', {
+  desc = 'Adjust scrolloff to leave blank space at the bottom',
+  callback = AdjustScrolloff,
+})
 --  See `:help vim.keymap.set()`
 
 -- WARN: personal keymap settings
@@ -150,6 +169,24 @@ vim.api.nvim_create_autocmd({ 'VimResized', 'VimEnter' }, {
 vim.keymap.set('n', ';', ':', { noremap = true })
 vim.keymap.set('n', ',', ';', { noremap = true })
 vim.keymap.set('n', ':', ',', { noremap = true })
+
+-- fix for concat line cursor position
+vim.keymap.set('n', 'J', 'mzJ`z', { noremap = true })
+
+-- keep search results centered
+vim.keymap.set('n', 'n', 'nzzzv', { noremap = true })
+vim.keymap.set('n', 'N', 'Nzzzv', { noremap = true })
+
+-- leader y to copy to clipboard
+vim.keymap.set('n', '<leader>y', '"+y', { noremap = true })
+vim.keymap.set('v', '<leader>y', '"+y', { noremap = true })
+vim.keymap.set('n', '<leader>Y', '"+Y', { noremap = true })
+--same for pasting from clipboard
+vim.keymap.set('n', '<leader>p', '"+p', { noremap = true })
+vim.keymap.set('n', '<leader>P', '"+P', { noremap = true })
+vim.keymap.set('v', '<leader>p', '"+p', { noremap = true })
+-- keep buffer after paste
+-- vim.keymap.set('x', '<leader>p', "\"_dP', { noremap = true })
 
 -- insert new line at cursor position
 vim.keymap.set('n', '<leader><CR>', 'i<CR><Esc>', { noremap = true })
