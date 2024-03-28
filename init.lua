@@ -223,8 +223,20 @@ local toggle_terminal = function()
     -- check if the terminal is focused
     local win_id = vim.fn.bufwinnr(term_buf)
     if win_id ~= -1 then
-      -- if focused, hide the terminal, but keep the buffer
-      vim.cmd(win_id .. 'wincmd c')
+      -- if it is open, check if it is the currently focused window
+      local current_win = vim.fn.win_getid()
+      if current_win == vim.fn.win_getid(win_id) then
+        -- if it is, close the terminal
+        vim.cmd(win_id .. 'wincmd c')
+      else
+        -- if it is not, focus on the terminal
+        vim.cmd(win_id .. 'wincmd w')
+        -- go into terminal mode
+        if vim.api.nvim_buf_get_option(term_buf, 'buflisted') then
+          vim.cmd 'startinsert'
+        end
+      end
+      -- vim.cmd(win_id .. 'wincmd c')
     else
       vim.cmd('split | buffer ' .. term_buf .. ' | resize 12')
       vim.api.nvim_feedkeys('i', 'n', true)
@@ -233,8 +245,38 @@ local toggle_terminal = function()
 end
 
 -- toggle my bash terminal in split bottom
-vim.keymap.set('n', '<leader>t', toggle_terminal, { desc = '[T]oggle terminal' })
---
+vim.keymap.set({ 'n', 't' }, '<leader>t', toggle_terminal, { desc = '[T]oggle terminal' })
+-- vim.keymap.set('t', '<leader>t', toggle_terminal, { desc = '[T]oggle terminal' })
+
+-- define sign
+vim.fn.sign_define('JumpMark', { text = '▶', texthl = 'Comment', linehl = '', numhl = '' })
+vim.fn.sign_define('JumpMarkl', { text = '-', texthl = 'Comment', linehl = '', numhl = '' })
+local add_jump_signs = function()
+  local current_buf = vim.fn.bufnr '%'
+  local current_line = vim.fn.line '.'
+  -- remove any existing jump signs by their name
+  vim.fn.sign_unplace('JumpMark', { buffer = current_buf })
+  vim.fn.sign_place(101, 'JumpMark', 'JumpMarkl', '', { lnum = current_line })
+  for _, i in ipairs { -10, -5, 5, 10 } do
+    -- add sign to gutter
+    local this_line = current_line + i
+    if this_line < 1 then
+      -- skip if line is less than 1
+      goto continue
+    end
+    vim.fn.sign_place(101, 'JumpMark', 'JumpMark', '', { lnum = current_line + i })
+    ::continue::
+  end
+end
+
+-- create autocommand for jumpmarks
+vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+  desc = 'Add jump signs',
+  callback = add_jump_signs,
+})
+
+vim.keymap.set('n', '<leader>j', add_jump_signs, { desc = '[J]ump sign' })
+
 -- remap page up and down to half page up and down and center cursor
 vim.keymap.set('n', '<PageUp>', '<C-u>zz', { noremap = true })
 vim.keymap.set('n', '<PageDown>', '<C-d>zz', { noremap = true })
@@ -250,21 +292,20 @@ vim.keymap.set('n', '<leader>bp', ':bprevious<CR>', { desc = '[b]uffer [p]reviou
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
-
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagnostic message' })
 vim.keymap.set('n', '<leader>L', vim.diagnostic.open_float, { desc = 'Show diagnostic Error messages [L]og' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
--- Exit terminal mode in the builtin terminal with a double <Esc>
+-- Exit terminal mode in the builtin terminal with a double <Esc>, not needed as leader t is used to toggle
 -- or just use <C-\><C-n> to exit terminal mode
-vim.keymap.set('t', '<Esc><Esc>', function()
-  vim.defer_fn(function()
-    vim.cmd 'stopinsert'
-  end, 50)
-  toggle_terminal()
-end, { noremap = true })
+-- vim.keymap.set('t', '<Esc><Esc>', function()
+--   vim.defer_fn(function()
+--     vim.cmd 'stopinsert'
+--   end, 50)
+--   toggle_terminal()
+-- end, { noremap = true })
 
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
@@ -274,6 +315,8 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+-- also do this in terminal mode
+vim.keymap.set('t', '<C-k>', '<C-\\><C-n><C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -327,10 +370,10 @@ require('lazy').setup({
     'mg979/vim-visual-multi',
     opts = {},
     config = function()
-      vim.keymap.set('n', '<C-n>', '<Plug>(VM-Create)', { desc = 'Create multi-cursor' })
-      vim.keymap.set('n', '<C-p>', '<Plug>(VM-Create-Select)', { desc = 'Create and select multi-cursor' })
-      vim.keymap.set('v', '<C-n>', '<Plug>(VM-Create)', { desc = 'Create multi-cursor' })
-      vim.keymap.set('v', '<C-p>', '<Plug>(VM-Create-Select)', { desc = 'Create and select multi-cursor' })
+      --   vim.keymap.set('n', '<C-n>', '<Plug>(VM-Create)', { desc = 'Create multi-cursor' })
+      --   vim.keymap.set('n', '<C-p>', '<Plug>(VM-Create-Select)', { desc = 'Create and select multi-cursor' })
+      --   vim.keymap.set('v', '<C-n>', '<Plug>(VM-Create)', { desc = 'Create multi-cursor' })
+      --   vim.keymap.set('v', '<C-p>', '<Plug>(VM-Create-Select)', { desc = 'Create and select multi-cursor' })
     end,
   },
   -- get UndoTree
@@ -392,10 +435,21 @@ require('lazy').setup({
     'vvhg1/nvim-chainsaw',
     opts = {},
     config = function()
-      require('chainsaw').setup()
-      -- vim.keymap.set('n', '<leader>l', ':bnext<CR>', { desc = 'insert log/print statement' })
-      -- require("chainsaw").variableLog()
-      vim.keymap.set('n', '<leader>l', require('chainsaw').variableLog, { desc = 'insert log/print statement' })
+      require('chainsaw').setup {
+        marker = '🪚',
+        beepEmojis = { '🔵', '🟩', '⭐', '⭕', '💜', '🔲' },
+        logStatements = {
+          variableLog = {
+            -- javascript = 'console.log("%s %s:", %s);',
+            nvim_lua = 'print("%s %s:", %s)',
+          },
+        },
+      }
+      vim.keymap.set({ 'n', 'v' }, '<leader>l', function()
+        require('chainsaw').variableLog()
+        -- correct indentation
+        vim.cmd 'norm =='
+      end, { desc = 'insert log/print statement' })
     end,
   },
 
