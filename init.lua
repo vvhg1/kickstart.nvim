@@ -142,6 +142,10 @@ vim.api.nvim_create_autocmd('CursorMoved', {
 
 -- WARN: personal keymap settings
 
+-- when in the terminal I want to use control+s to go into normal mode
+vim.keymap.set('t', '<C-s>', '<C-\\><C-n>', { noremap = true })
+-- split window with C-S
+vim.keymap.set('n', '<C-S>', ':split<CR>', { noremap = true })
 -- we swap a few keys so , is repeat and ; is command and : is repeat backwards
 vim.keymap.set('n', ';', ':', { noremap = true })
 vim.keymap.set('n', ',', ';', { noremap = true })
@@ -217,7 +221,7 @@ local toggle_terminal = function()
   local term_buf = vim.fn.bufnr 'term://*:bash'
   if term_buf == -1 then
     -- if not found, open a new terminal and focus on it
-    vim.cmd 'botright 12split term://bash'
+    vim.cmd 'botright 22split term://bash'
     vim.api.nvim_feedkeys('i', 'n', true)
   else
     -- check if the terminal is focused
@@ -238,7 +242,7 @@ local toggle_terminal = function()
       end
       -- vim.cmd(win_id .. 'wincmd c')
     else
-      vim.cmd('split | buffer ' .. term_buf .. ' | resize 12')
+      vim.cmd('split | buffer ' .. term_buf .. ' | resize 22')
       vim.api.nvim_feedkeys('i', 'n', true)
     end
   end
@@ -248,34 +252,39 @@ end
 vim.keymap.set({ 'n', 't' }, '<leader>t', toggle_terminal, { desc = '[T]oggle terminal' })
 -- vim.keymap.set('t', '<leader>t', toggle_terminal, { desc = '[T]oggle terminal' })
 
--- define sign
-vim.fn.sign_define('JumpMark', { text = '▶', texthl = 'Comment', linehl = '', numhl = '' })
-vim.fn.sign_define('JumpMarkl', { text = '-', texthl = 'Comment', linehl = '', numhl = '' })
-local add_jump_signs = function()
-  local current_buf = vim.fn.bufnr '%'
-  local current_line = vim.fn.line '.'
-  -- remove any existing jump signs by their name
-  vim.fn.sign_unplace('JumpMark', { buffer = current_buf })
-  vim.fn.sign_place(101, 'JumpMark', 'JumpMarkl', '', { lnum = current_line })
-  for _, i in ipairs { -10, -5, 5, 10 } do
-    -- add sign to gutter
-    local this_line = current_line + i
-    if this_line < 1 then
-      -- skip if line is less than 1
-      goto continue
+-- NOTE: jump marks
+local show_jumpmarks = false
+if show_jumpmarks then
+  vim.fn.sign_define('JumpMark5', { text = '5', texthl = 'Comment', linehl = '', numhl = '' })
+  vim.fn.sign_define('JumpMark10', { text = '10', texthl = 'Comment', linehl = '', numhl = '' })
+  vim.fn.sign_define('JumpMarkl', { text = '-', texthl = 'Comment', linehl = '', numhl = '' })
+  local add_jump_signs = function()
+    local current_buf = vim.fn.bufnr '%'
+    local current_line = vim.fn.line '.'
+    -- remove any existing jump signs by their name
+    vim.fn.sign_unplace('JumpMark', { buffer = current_buf })
+    vim.fn.sign_place(101, 'JumpMark', 'JumpMarkl', '', { lnum = current_line })
+    for _, i in ipairs { -10, -5, 5, 10 } do
+      -- add sign to gutter
+      local this_line = current_line + i
+      if this_line < 1 then
+        -- skip if line is less than 1
+        goto continue
+      end
+      if i == -5 or i == 5 then
+        vim.fn.sign_place(101, 'JumpMark', 'JumpMark5', '', { lnum = this_line })
+      else
+        vim.fn.sign_place(101, 'JumpMark', 'JumpMark10', '', { lnum = this_line })
+      end
+      ::continue::
     end
-    vim.fn.sign_place(101, 'JumpMark', 'JumpMark', '', { lnum = current_line + i })
-    ::continue::
   end
+  vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+    desc = 'Add jump signs',
+    callback = add_jump_signs,
+  })
+  vim.keymap.set('n', '<leader>j', add_jump_signs, { desc = '[J]ump sign' })
 end
-
--- create autocommand for jumpmarks
-vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-  desc = 'Add jump signs',
-  callback = add_jump_signs,
-})
-
-vim.keymap.set('n', '<leader>j', add_jump_signs, { desc = '[J]ump sign' })
 
 -- remap page up and down to half page up and down and center cursor
 vim.keymap.set('n', '<PageUp>', '<C-u>zz', { noremap = true })
@@ -350,8 +359,10 @@ vim.opt.rtp:prepend(lazypath)
 --
 --  To update plugins, you can run
 --    :Lazy update
---
--- NOTE: Here is where you install your plugins.
+-- WARN: color settings
+vim.api.nvim_set_hl(0, 'indentguides', { fg = '#272730' })
+
+-- WARN: Here is where you install your plugins.
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
@@ -364,6 +375,44 @@ require('lazy').setup({
   --
   --  This is equivalent to:
   --    require('Comment').setup({})
+
+  -- blankline
+  {
+    'lukas-reineke/indent-blankline.nvim',
+    main = 'ibl',
+    opts = {
+      indent = {
+        highlight = { 'indentguides' },
+        char = '│',
+        smart_indent_cap = true,
+      },
+      scope = {
+        highlight = {
+          'RainbowDelimiterRed',
+          'RainbowDelimiterYellow',
+          'RainbowDelimiterBlue',
+          'RainbowDelimiterOrange',
+          'RainbowDelimiterGreen',
+          'RainbowDelimiterViolet',
+          'RainbowDelimiterCyan',
+        },
+        show_start = false,
+        show_end = false,
+        char = '│',
+        include = { node_type = { python = { 'while_statement', 'if_statement', 'for_statement', 'with_statement', 'expression_statement' } } },
+      },
+    },
+    config = function(_, opts)
+      require('ibl').setup(opts)
+      local hooks = require 'ibl.hooks'
+      hooks.register(hooks.type.SCOPE_HIGHLIGHT, hooks.builtin.scope_highlight_from_extmark)
+    end,
+  },
+
+  -- rainbow delimiters
+  {
+    'HiPhish/rainbow-delimiters.nvim',
+  },
 
   -- multi cursor
   {
@@ -455,7 +504,57 @@ require('lazy').setup({
 
   { 'github/copilot.vim' },
   -- "gc" to comment visual regions/lines
-  { 'numToStr/Comment.nvim', opts = {} },
+  {
+    'numToStr/Comment.nvim',
+    opts = {},
+    config = function()
+      require('Comment').setup {
+
+        ---Add a space b/w comment and the line
+        padding = true,
+        ---Whether the cursor should stay at its position
+        sticky = true,
+        ---Lines to be ignored while (un)comment
+        ignore = nil,
+        ---LHS of toggle mappings in NORMAL mode
+        toggler = {
+          ---Line-comment toggle keymap, changed from gcc
+          line = '<leader>cc',
+          ---Block-comment toggle keymap
+          block = 'gbc',
+        },
+        ---LHS of operator-pending mappings in NORMAL and VISUAL mode
+        opleader = {
+          ---Line-comment keymap
+          line = 'gc',
+          ---Block-comment keymap
+          block = 'gb',
+        },
+        ---LHS of extra mappings
+        extra = {
+          ---Add comment on the line above
+          above = 'gcO',
+          ---Add comment on the line below
+          below = 'gco',
+          ---Add comment at the end of line
+          eol = 'gcA',
+        },
+        ---Enable keybindings
+        ---NOTE: If given `false` then the plugin won't create any mappings
+        mappings = {
+          ---Operator-pending mapping; `gcc` `gbc` `gc[count]{motion}` `gb[count]{motion}`
+          basic = true,
+          ---Extra mapping; `gco`, `gcO`, `gcA`
+          extra = true,
+        },
+        ---Function to call before (un)comment
+        pre_hook = nil,
+        ---Function to call after (un)comment
+        post_hook = nil,
+      }
+    end,
+    vim.keymap.set('n', '<leader>cc', ':CommentToggle<CR>', { noremap = true }),
+  },
 
   -- Here is a more advanced example where we pass configuration
   -- options to `gitsigns.nvim`. This is equivalent to the following lua:
@@ -1000,14 +1099,6 @@ require('lazy').setup({
     end,
   },
 
-  {
-    'lukas-reineke/indent-blankline.nvim',
-    main = 'ibl',
-    opts = {
-      indent = { char = '▏' },
-    },
-  },
-
   -- Highlight todo, notes, etc in comments
   {
     'folke/todo-comments.nvim',
@@ -1137,5 +1228,8 @@ require('lazy').setup({
   },
 })
 
+-- set background to color #1E1E1E
+vim.api.nvim_set_hl(0, 'Normal', { bg = '#1C1C23' })
+-- vim.api.nvim_set_hl(0, 'NormalFloat', { bg = '#1C1C23' })
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
