@@ -327,7 +327,24 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 -- also do this in terminal mode
 vim.keymap.set('t', '<C-k>', '<C-\\><C-n><C-w><C-k>', { desc = 'Move focus to the upper window' })
 
--- [[ Basic Autocommands ]]
+local virtual_text_flag = true
+-- toggle inline diagnostics virtual text
+local toggle_diagnostics = function()
+  -- flag to track if virtual text is enabled
+  if virtual_text_flag then
+    -- if it is, disable it
+    vim.diagnostic.config { virtual_text = false }
+    virtual_text_flag = false
+    vim.notify 'Disabled inline diagnostics'
+  else
+    -- if it is not, enable it
+    vim.diagnostic.config { virtual_text = true }
+    virtual_text_flag = true
+    vim.notify 'Enabled inline diagnostics'
+  end
+end
+
+vim.keymap.set('n', '<leader>f', toggle_diagnostics, { desc = 'Toggle [L]SP inline diagnostics' })
 --  See `:help lua-guide-autocommands`
 
 -- Highlight when yanking (copying) text
@@ -361,6 +378,14 @@ vim.opt.rtp:prepend(lazypath)
 --    :Lazy update
 -- WARN: color settings
 vim.api.nvim_set_hl(0, 'indentguides', { fg = '#272730' })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterFuchs', { fg = '#c869be' })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterBlu', { fg = '#1894e2' })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterYel', { fg = '#eac805' })
+vim.api.nvim_set_hl(0, 'RainbowDelimiterGre', { fg = '#80dc70' })
+-- vim.api.nvim_set_hl(0, 'RainbowDelimiterPur', { fg = '#af00ff' })
+
+-- set the height of the command line at the bottom
+vim.opt.cmdheight = 0
 
 -- WARN: Here is where you install your plugins.
 require('lazy').setup({
@@ -376,30 +401,101 @@ require('lazy').setup({
   --  This is equivalent to:
   --    require('Comment').setup({})
 
-  -- blankline
+  -- -- get nvim-colorizer
+  -- {
+  --   'norcalli/nvim-colorizer.lua',
+  --   config = function()
+  --     require('colorizer').setup()
+  --   end,
+  -- },
+
+  -- Lua Line
+  {
+    'nvim-lualine/lualine.nvim',
+    config = function()
+      require('lualine').setup {
+        options = {
+          icons_enabled = true,
+          component_separators = '|',
+          section_separators = '',
+        },
+        sections = {
+          lualine_a = {
+            {
+              'filename',
+            },
+          },
+          lualine_b = {
+            {
+              'branch',
+              color = { bg = '#292e42' },
+            },
+            {
+              'diff',
+              color = { bg = '#292e42' },
+            },
+            {
+              'diagnostics',
+              color = { bg = '#292e42' },
+            },
+          },
+          lualine_c = {},
+          lualine_y = {
+            {
+              'progress',
+              color = { bg = '#292e42' },
+            },
+          },
+          lualine_z = {
+            'searchcount',
+            {
+              function()
+                return vim.fn.line '.'
+              end,
+            },
+          },
+        },
+      }
+    end,
+  },
+  -- Auto session
+  {
+    'rmagatti/auto-session',
+    config = function()
+      require('auto-session').setup {
+        log_level = 'error',
+      }
+    end,
+  },
+
+  -- blankline, this shows the indent lines and is color matched to the rainbow delimiters
   {
     'lukas-reineke/indent-blankline.nvim',
     main = 'ibl',
     opts = {
+      debounce = 250,
       indent = {
-        highlight = { 'indentguides' },
+        -- highlight = { 'indentguides' },
         char = '│',
         smart_indent_cap = true,
       },
       scope = {
         highlight = {
-          'RainbowDelimiterRed',
-          'RainbowDelimiterYellow',
-          'RainbowDelimiterBlue',
-          'RainbowDelimiterOrange',
-          'RainbowDelimiterGreen',
-          'RainbowDelimiterViolet',
-          'RainbowDelimiterCyan',
+          'RainbowDelimiterFuchs',
+          'RainbowDelimiterBlu',
+          'RainbowDelimiterYel',
+          'RainbowDelimiterGre',
         },
         show_start = false,
         show_end = false,
         char = '│',
-        include = { node_type = { python = { 'while_statement', 'if_statement', 'for_statement', 'with_statement', 'expression_statement' } } },
+        -- char = '│',
+        include = {
+          node_type = {
+            python = { 'while_statement', 'if_statement', 'for_statement', 'with_statement', 'expression_statement' },
+            lua = { 'table_constructor' },
+          },
+        },
       },
     },
     config = function(_, opts)
@@ -412,6 +508,16 @@ require('lazy').setup({
   -- rainbow delimiters
   {
     'HiPhish/rainbow-delimiters.nvim',
+    config = function()
+      require('rainbow-delimiters.setup').setup {
+        highlight = {
+          'RainbowDelimiterFuchs',
+          'RainbowDelimiterBlu',
+          'RainbowDelimiterYel',
+          'RainbowDelimiterGre',
+        },
+      }
+    end,
   },
 
   -- multi cursor
@@ -471,14 +577,6 @@ require('lazy').setup({
     end,
   },
 
-  -- get nvim-colorizer
-  -- {
-  --   'norcalli/nvim-colorizer.lua',
-  --   config = function()
-  --     require('colorizer').setup()
-  --   end,
-  -- },
-  --
   -- get Chainsaw
   {
     'vvhg1/nvim-chainsaw',
@@ -502,7 +600,9 @@ require('lazy').setup({
     end,
   },
 
+  -- Copilot
   { 'github/copilot.vim' },
+
   -- "gc" to comment visual regions/lines
   {
     'numToStr/Comment.nvim',
@@ -515,11 +615,12 @@ require('lazy').setup({
         ---Whether the cursor should stay at its position
         sticky = true,
         ---Lines to be ignored while (un)comment
-        ignore = nil,
+        --we want to ignore empty or whitespace lines
+        ignore = '^$',
         ---LHS of toggle mappings in NORMAL mode
         toggler = {
           ---Line-comment toggle keymap, changed from gcc
-          line = '<leader>cc',
+          line = 'gcc',
           ---Block-comment toggle keymap
           block = 'gbc',
         },
@@ -556,11 +657,6 @@ require('lazy').setup({
     vim.keymap.set('n', '<leader>cc', ':CommentToggle<CR>', { noremap = true }),
   },
 
-  -- Here is a more advanced example where we pass configuration
-  -- options to `gitsigns.nvim`. This is equivalent to the following lua:
-  --    require('gitsigns').setup({ ... })
-  --
-  -- See `:help gitsigns` to understand what the configuration keys do
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
     opts = {
@@ -579,21 +675,7 @@ require('lazy').setup({
     },
   },
 
-  -- NOTE: Plugins can also be configured to run lua code when they are loaded.
-  --
-  -- This is often very useful to both group configuration, as well as handle
-  -- lazy loading plugins that don't need to be loaded immediately at startup.
-  --
-  -- For example, in the following configuration, we use:
-  --  event = 'VimEnter'
-  --
-  -- which loads which-key before all the UI elements are loaded. Events can be
-  -- normal autocommands events (`:help autocmd-events`).
-  --
-  -- Then, because we use the `config` key, the configuration only runs
-  -- after the plugin has been loaded:
-  --  config = function() ... end
-
+  -- Which key
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
@@ -614,13 +696,7 @@ require('lazy').setup({
     end,
   },
 
-  -- NOTE: Plugins can specify dependencies.
-  --
-  -- The dependencies are proper plugin specifications as well - anything
-  -- you do for a plugin at the top level, you can do for a dependency.
-  --
-  -- Use the `dependencies` key to specify the dependencies of a particular plugin
-
+  -- Telescope
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
@@ -727,6 +803,13 @@ require('lazy').setup({
         }
       end, { desc = '[S]earch [/] in Open Files' })
 
+      -- live grep over all files in pwd
+      vim.keymap.set('n', '<leader>gg', function()
+        builtin.live_grep {
+          search_dirs = { vim.fn.getcwd() },
+          prompt_title = 'Live Grep in ' .. vim.fn.getcwd(),
+        }
+      end, { desc = '[S]earch [A]ll workspace files' })
       -- Shortcut for searching your neovim configuration files
       vim.keymap.set('n', '<leader>sn', function()
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
@@ -880,9 +963,18 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
+        clangd = {},
         -- gopls = {},
-        -- pyright = {},
+        pyright = {
+          settings = {
+            python = {
+              analysis = {
+                autoSearchPaths = true,
+                useLibraryCodeForTypes = true,
+              },
+            },
+          },
+        },
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -956,6 +1048,7 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        python = { 'black' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -1172,6 +1265,45 @@ require('lazy').setup({
         additional_vim_regex_highlighting = { 'ruby' },
       },
       indent = { enable = true, disable = { 'ruby' } },
+      textobjects = {
+        select = {
+          enable = true,
+
+          -- Automatically jump forward to textobj, similar to targets.vim
+          lookahead = true,
+
+          keymaps = {
+            ['if'] = { query = '@function.inner', desc = 'Select inner part of a function' },
+            ['af'] = { query = '@function.outer', desc = 'Select outer part of a function' },
+            ['ic'] = { query = '@class.inner', desc = 'Select inner part of a class region' },
+            ['ac'] = { query = '@class.outer', desc = 'Select class region' },
+            -- You can also use captures from other query groups like `locals.scm`
+            ['as'] = { query = '@scope', query_group = 'locals', desc = 'Select language scope' },
+          },
+          -- You can choose the select mode (default is charwise 'v')
+          --
+          -- Can also be a function which gets passed a table with the keys
+          -- * query_string: eg '@function.inner'
+          -- * method: eg 'v' or 'o'
+          -- and should return the mode ('v', 'V', or '<c-v>') or a table
+          -- mapping query_strings to modes.
+          -- selection_modes = {
+          -- ['@parameter.outer'] = 'v', -- charwise
+          -- ['@function.outer'] = 'V', -- linewise
+          -- ['@class.outer'] = '<c-v>', -- blockwise
+          -- },
+          -- If you set this to `true` (default is `false`) then any textobject is
+          -- extended to include preceding or succeeding whitespace. Succeeding
+          -- whitespace has priority in order to act similarly to eg the built-in
+          -- `ap`.
+          --
+          -- Can also be a function which gets passed a table with the keys
+          -- * query_string: eg '@function.inner'
+          -- * selection_mode: eg 'v'
+          -- and should return true or false
+          -- include_surrounding_whitespace = true,
+        },
+      },
     },
     config = function(_, opts)
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
