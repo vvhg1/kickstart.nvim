@@ -182,8 +182,8 @@ vim.keymap.set('v', '<leader>p', '"+p', { noremap = true })
 
 -- insert new line at cursor position
 vim.keymap.set('n', '<leader><CR>', 'i<CR><Esc>', { noremap = true })
--- open explorer
-vim.keymap.set('n', '<leader>x', ':Explore<CR>', { noremap = true })
+-- open oil
+vim.keymap.set('n', '-', ':Oil<CR>', { noremap = true })
 
 -- move highlighted line up and down with alt arrow up and down instead of j and k
 vim.keymap.set('n', '<A-up>', ':m .-2<CR>==', { noremap = true })
@@ -376,7 +376,7 @@ vim.opt.rtp:prepend(lazypath)
 --
 --  To update plugins, you can run
 --    :Lazy update
--- WARN: color settings
+-- INFO: color settings
 vim.api.nvim_set_hl(0, 'indentguides', { fg = '#272730' })
 vim.api.nvim_set_hl(0, 'RainbowDelimiterFuchs', { fg = '#c869be' })
 vim.api.nvim_set_hl(0, 'RainbowDelimiterBlu', { fg = '#1894e2' })
@@ -408,6 +408,35 @@ require('lazy').setup({
   --     require('colorizer').setup()
   --   end,
   -- },
+
+  -- fugitive
+  {
+    'tpope/vim-fugitive',
+    config = function()
+      vim.keymap.set('n', '<leader>Gs', ':Git<CR>', { desc = '[G]it [S]tatus' })
+      vim.keymap.set('n', '<leader>Gd', ':Gvdiffsplit<CR>', { desc = '[G]it [D]iff' })
+      -- remap : to ;
+      vim.keymap.set('n', '<leader>Gp', ':diffput<CR>', { desc = '[G]it [P]ut' })
+    end,
+  },
+
+  -- markdown preview
+  -- {
+  --   'iamcco/markdown-preview.nvim',
+  --   cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
+  --   ft = { 'markdown' },
+  --   build = function()
+  --     vim.fn['mkdp#util#install']()
+  --   end,
+  -- },
+
+  -- Oil.nvim
+  {
+    'stevearc/oil.nvim',
+    config = function()
+      require('oil').setup()
+    end,
+  },
 
   -- Lua Line
   {
