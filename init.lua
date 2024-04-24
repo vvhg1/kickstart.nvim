@@ -177,8 +177,16 @@ vim.keymap.set('n', '<leader>p', '"+p', { noremap = true })
 vim.keymap.set('n', '<leader>P', '"+P', { noremap = true })
 vim.keymap.set('v', '<leader>p', '"+p', { noremap = true })
 
+-- keep selection after indent
+vim.keymap.set('v', '<', '<gv', { noremap = true })
+vim.keymap.set('v', '>', '>gv', { noremap = true })
+
 -- keep buffer after paste
--- vim.keymap.set('x', '<leader>p', "\"_dP', { noremap = true })
+vim.keymap.set('x', 'p', '"_dP', { noremap = true })
+
+-- don't continue comments on new line
+vim.keymap.set('n', 'o', 'o<Esc>^Da', { noremap = true })
+vim.keymap.set('n', 'O', 'O<Esc>^Da', { noremap = true })
 
 -- insert new line at cursor position
 vim.keymap.set('n', '<leader><CR>', 'i<CR><Esc>', { noremap = true })
@@ -249,7 +257,7 @@ local toggle_terminal = function()
 end
 
 -- toggle my bash terminal in split bottom
-vim.keymap.set({ 'n', 't' }, '<leader>t', toggle_terminal, { desc = '[T]oggle terminal' })
+vim.keymap.set({ 'n', 't' }, '<leader><Esc>', toggle_terminal, { desc = 'Toggle terminal' })
 -- vim.keymap.set('t', '<leader>t', toggle_terminal, { desc = '[T]oggle terminal' })
 
 -- NOTE: jump marks
@@ -385,7 +393,7 @@ vim.api.nvim_set_hl(0, 'RainbowDelimiterGre', { fg = '#80dc70' })
 -- vim.api.nvim_set_hl(0, 'RainbowDelimiterPur', { fg = '#af00ff' })
 
 -- set the height of the command line at the bottom
-vim.opt.cmdheight = 0
+-- vim.opt.cmdheight = 0
 
 -- WARN: Here is where you install your plugins.
 require('lazy').setup({
@@ -618,6 +626,7 @@ require('lazy').setup({
           variableLog = {
             -- javascript = 'console.log("%s %s:", %s);',
             nvim_lua = 'print("%s %s:", %s)',
+            c = 'printf("%s %s: placeholder \\n", %s);',
           },
         },
       }
@@ -683,7 +692,7 @@ require('lazy').setup({
         post_hook = nil,
       }
     end,
-    vim.keymap.set('n', '<leader>cc', ':CommentToggle<CR>', { noremap = true }),
+    -- vim.keymap.set('n', '<leader>cc', ':CommentToggle<CR>', { noremap = true }),
   },
 
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
@@ -708,6 +717,10 @@ require('lazy').setup({
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
+    init = function()
+      vim.opt.timeout = true
+      vim.opt.timeoutlen = 500
+    end,
     config = function() -- This is the function that runs, AFTER loading
       require('which-key').setup()
 
@@ -772,6 +785,7 @@ require('lazy').setup({
 
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
+      local actions = require 'telescope.actions'
       require('telescope').setup {
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
@@ -792,7 +806,21 @@ require('lazy').setup({
             --   },
           },
         },
-        -- pickers = {}
+        pickers = {
+          buffers = {
+            -- additional_params = function()
+            -- return {
+            -- we want to filter out terminal buffers term://
+            -- 'term://',
+            -- }
+            -- end,
+            mappings = {
+              n = {
+                ['dd'] = actions.delete_buffer,
+              },
+            },
+          },
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
@@ -1080,7 +1108,7 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
+        local disable_filetypes = { c = false, cpp = true }
         return {
           timeout_ms = 500,
           lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
@@ -1089,6 +1117,8 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         python = { 'black' },
+        json = { 'jq' },
+        c = { 'clang-format' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -1244,7 +1274,8 @@ require('lazy').setup({
         signs = false,
         keywords = {
           FIX = { icon = '', color = '#F200FF', alt = { 'FIXME', 'Fix', 'Fixme', 'fix', 'fixme' } },
-          TODO = { icon = '', color = '#8af5fd', alt = { 'info', 'INFO', 'todo', 'Todo', 'Info' } },
+          TODO = { icon = '', color = '#ff7c20', alt = { 'todo', 'Todo', 'TODO' } },
+          INFO = { icon = 'i', color = '#8af5fd', alt = { 'info', 'INFO', 'Info' } },
           HACK = { icon = '', color = '#9d7cd8', alt = { 'hack', 'Hack' } },
           WARN = { icon = '', color = '#F200FF', alt = { 'WARNING', 'XXX', 'Warning', 'warning', 'Warn', 'warn' } },
         },
@@ -1293,6 +1324,10 @@ require('lazy').setup({
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
+    dependencies = {
+      -- Treesitter textobjects
+      'nvim-treesitter/nvim-treesitter-textobjects',
+    },
     opts = {
       ensure_installed = { 'python', 'markdown', 'css', 'javascript', 'bash', 'c', 'html', 'lua', 'markdown', 'vim', 'vimdoc' },
       -- Autoinstall languages that are not installed
@@ -1315,8 +1350,16 @@ require('lazy').setup({
           keymaps = {
             ['if'] = { query = '@function.inner', desc = 'Select inner part of a function' },
             ['af'] = { query = '@function.outer', desc = 'Select outer part of a function' },
+            ['al'] = { query = '@loop.outer', desc = 'Select loop region' },
+            ['il'] = { query = '@loop.inner', desc = 'Select inner part of a loop' },
+            ['am'] = { query = '@call.outer', desc = 'Select call region' },
+            ['im'] = { query = '@call.inner', desc = 'Select inner part of a call' },
+            ['vl'] = { query = '@assignment.lhs', desc = 'Select left-hand side of an assignment' },
+            ['vr'] = { query = '@assignment.rhs', desc = 'Select right-hand side of an assignment' },
             ['ic'] = { query = '@class.inner', desc = 'Select inner part of a class region' },
             ['ac'] = { query = '@class.outer', desc = 'Select class region' },
+            ['ai'] = { query = '@conditional.outer', desc = 'Select conditional region' },
+            ['ii'] = { query = '@conditional.inner', desc = 'Select inner part of a conditional' },
             -- You can also use captures from other query groups like `locals.scm`
             ['as'] = { query = '@scope', query_group = 'locals', desc = 'Select language scope' },
           },
