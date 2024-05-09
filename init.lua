@@ -185,8 +185,8 @@ vim.keymap.set('v', '>', '>gv', { noremap = true })
 vim.keymap.set('x', 'p', '"_dP', { noremap = true })
 
 -- don't continue comments on new line
-vim.keymap.set('n', 'o', 'o<Esc>^Da', { noremap = true })
-vim.keymap.set('n', 'O', 'O<Esc>^Da', { noremap = true })
+vim.keymap.set('n', 'o', 'oo<Esc>^Da', { noremap = true })
+vim.keymap.set('n', 'O', 'Oo<Esc>^Da', { noremap = true })
 
 -- insert new line at cursor position
 vim.keymap.set('n', '<leader><CR>', 'i<CR><Esc>', { noremap = true })
@@ -442,7 +442,9 @@ require('lazy').setup({
   {
     'stevearc/oil.nvim',
     config = function()
-      require('oil').setup()
+      require('oil').setup {
+        default_file_explorer = false,
+      }
     end,
   },
 
@@ -1400,6 +1402,17 @@ require('lazy').setup({
       --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
       --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
       --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+    end,
+  },
+  -- treesitter context
+  {
+    'nvim-treesitter/nvim-treesitter-context',
+    after = 'nvim-treesitter',
+    config = function()
+      require('treesitter-context').setup {
+        enable = true,
+        multiline_threshold = 1,
+      }
     end,
   },
 
