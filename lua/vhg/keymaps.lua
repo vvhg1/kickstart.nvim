@@ -213,3 +213,11 @@ local toggle_diagnostics = function()
 end
 
 vim.keymap.set('n', '<leader>f', toggle_diagnostics, { desc = 'Toggle [L]SP inline diagnostics' })
+
+-- save without autoformat on save (effectively disables conform)
+vim.keymap.set('n', '<leader>ww', function()
+  -- we need to circumvent the BufWritePre autocmd
+  --  that is triggered by the update command
+  vim.cmd 'noautocmd update'
+  vim.cmd 'noautocmd write'
+end, { desc = '[W]rite without autoformat' })
