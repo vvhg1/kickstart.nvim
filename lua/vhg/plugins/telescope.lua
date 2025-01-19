@@ -46,6 +46,12 @@ return { -- Fuzzy Finder (files, lsp, etc)
     -- [[ Configure Telescope ]]
     -- See `:help telescope` and `:help telescope.setup()`
     local actions = require 'telescope.actions'
+    local finders = require 'telescope.finders'
+    local pickers = require 'telescope.pickers'
+    local previewers = require 'telescope.previewers'
+    local sorters = require 'telescope.sorters'
+    local make_entry = require 'telescope.make_entry'
+    local conf = require('telescope.config').values
     require('telescope').setup {
       -- You can put your default mappings / updates / etc. in here
       --  All the info you're looking for is in `:help telescope.setup()`
@@ -97,6 +103,12 @@ return { -- Fuzzy Finder (files, lsp, etc)
     vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
     vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
     vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
+    vim.keymap.set('n', '<leader>sF', function()
+      require('telescope.builtin').find_files {
+        hidden = true,
+        find_command = { 'rg', '--files', '--hidden', '--glob', '!.git/*' },
+      }
+    end, { desc = '[S]earch [H]idden files excluding .git' })
     vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
     vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
     vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
@@ -142,5 +154,47 @@ return { -- Fuzzy Finder (files, lsp, etc)
     vim.keymap.set('n', '<leader>sn', function()
       builtin.find_files { cwd = vim.fn.stdpath 'config' }
     end, { desc = '[S]earch [N]eovim files' })
+
+    -- custom telescope multi live grep
+    local live_multi_grep = function(opts)
+      opts = opts or {}
+      opts.cwd = opts.cwd or vim.fn.getcwd()
+      local finder = finders.new_async_job {
+        command_generator = function(prompt)
+          if not prompt or prompt == '' then
+            return nil
+          end
+
+          local search_strings = vim.split(prompt, '  ')
+          local args = { 'rg' }
+          if search_strings[1] then
+            table.insert(args, '-e')
+            table.insert(args, search_strings[1])
+          end
+
+          if search_strings[2] then
+            table.insert(args, '-g')
+            table.insert(args, search_strings[2])
+          end
+
+          return vim.tbl_flatten {
+            args,
+            { '--color=never', '--no-heading', '--with-filename', '--line-number', '--column', '--smart-case' },
+          }
+        end,
+        entry_maker = make_entry.gen_from_vimgrep(opts),
+        cwd = opts.cwd,
+      }
+      pickers
+        .new(opts, {
+          debounce = 100,
+          prompt_title = 'Live Multi Grep',
+          finder = finder,
+          previewer = conf.grep_previewer(opts),
+          sorter = sorters.empty(),
+        })
+        :find()
+    end
+    vim.keymap.set('n', '<leader>gl', live_multi_grep, { desc = '[S]earch [L]ive Multi Grep' })
   end,
 }

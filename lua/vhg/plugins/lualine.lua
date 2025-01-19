@@ -11,8 +11,17 @@ return {
       sections = {
         lualine_a = {
           {
-            'filename',
+            function()
+              --if the servername is an ip address, it's a remote session
+              local pattern = '^%d+%.%d+%.%d+%.%d+:%d+$'
+              return string.match(vim.v.servername, pattern) and ('Remote: %s'):format(vim.uv.os_gethostname()) or ''
+            end,
+            padding = { right = 1, left = 1 },
+            separator = { left = '', right = '' },
           },
+          -- {
+          --   'filename',
+          -- },
         },
         lualine_b = {
           {

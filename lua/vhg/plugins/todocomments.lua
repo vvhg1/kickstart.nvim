@@ -14,6 +14,7 @@ return {
         INFO = { icon = 'i', color = '#8af5fd', alt = { 'info', 'INFO', 'Info' } },
         HACK = { icon = '', color = '#9d7cd8', alt = { 'hack', 'Hack' } },
         WARN = { icon = '', color = '#F200FF', alt = { 'WARNING', 'XXX', 'Warning', 'warning', 'Warn', 'warn' } },
+        TEST = { icon = '⏲', color = '#00ff00', alt = { 'Test', 'TESTING', 'PASSED', 'FAILED' } },
       },
     }
   end,

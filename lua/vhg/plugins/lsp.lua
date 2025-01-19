@@ -157,7 +157,10 @@ return { -- LSP Configuration & Plugins
         },
       },
       -- javascript
-      tsserver = {},
+      ts_ls = {},
+      jsonls = {
+        filetypes = { 'json', 'jsonl', 'jsonc' },
+      },
       -- rust_analyzer = {},
       -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
       --

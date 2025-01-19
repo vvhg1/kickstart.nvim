@@ -86,5 +86,6 @@ require('lazy').setup {
   spec = 'vhg.plugins',
 }
 
+require('remote-nvim').setup()
 -- set background color
 vim.api.nvim_set_hl(0, 'Normal', { bg = '#1C1C23' })

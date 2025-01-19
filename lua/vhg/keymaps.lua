@@ -90,6 +90,9 @@ local toggle_terminal = function()
   if term_buf == -1 then
     -- if not found, open a new terminal and focus on it
     vim.cmd 'botright 22split term://bash'
+    -- wipe when closed
+    local new_buf = vim.api.nvim_get_current_buf()
+    vim.api.nvim_buf_set_option(new_buf, 'bufhidden')
     vim.api.nvim_feedkeys('i', 'n', true)
   else
     -- check if the terminal is focused
@@ -117,8 +120,7 @@ local toggle_terminal = function()
 end
 
 -- toggle my bash terminal in split bottom
-vim.keymap.set({ 'n', 't' }, '<leader><Esc>', toggle_terminal, { desc = 'Toggle terminal' })
--- vim.keymap.set('t', '<leader>t', toggle_terminal, { desc = '[T]oggle terminal' })
+vim.keymap.set({ 'n', 't' }, '<leader>!', toggle_terminal, { desc = 'Toggle terminal' })
 
 -- NOTE: jump marks
 local show_jumpmarks = false
