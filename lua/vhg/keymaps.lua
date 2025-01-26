@@ -168,7 +168,8 @@ vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = '[b]uffer [n]ext' })
 -- previous buffer
 vim.keymap.set('n', '<leader>bp', ':bprevious<CR>', { desc = '[b]uffer [p]revious' })
 
--- Set highlight on search, but clear on pressing <Esc> in normal mode
+-- Clear highlights on search when pressing <Esc> in normal mode
+-- See `:help hlsearch`
 vim.opt.hlsearch = true
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 -- Diagnostic keymaps
@@ -177,6 +178,10 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagn
 vim.keymap.set('n', '<leader>L', vim.diagnostic.open_float, { desc = 'Show diagnostic Error messages [L]og' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
+-- Quickfix keymaps
+vim.keymap.set('n', '<leader>cn', vim.cmd.cnext, { desc = 'Quickfix [c]hange [n]ext' })
+vim.keymap.set('n', '<leader>cp', vim.cmd.cprevious, { desc = 'Quickfix [c]hange [p]revious' })
+vim.keymap.set('n', '<leader>co', vim.cmd.copen, { desc = 'Quickfix [c]hange [o]pen' })
 -- Exit terminal mode in the builtin terminal with a double <Esc>, not needed as leader t is used to toggle
 -- or just use <C-\><C-n> to exit terminal mode
 -- vim.keymap.set('t', '<Esc><Esc>', function()

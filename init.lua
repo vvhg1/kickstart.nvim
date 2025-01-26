@@ -45,6 +45,14 @@ vim.api.nvim_create_autocmd({ 'VimResized', 'VimEnter' }, {
   end,
 })
 
+--autoformat on save, for some reason the conform plugin doesn't always do this
+vim.api.nvim_create_autocmd('BufWritePre', {
+  desc = 'Autoformat on save',
+  callback = function()
+    require('conform').format()
+  end,
+})
+
 --- Function to adjust scrolloff to leave blank space at the bottom
 local AdjustScrolloff = function()
   local current_line = vim.fn.line '.'
@@ -76,9 +84,12 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
-if not vim.loop.fs_stat(lazypath) then
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local lazyrepo = 'https://github.com/folke/lazy.nvim.git'
-  vim.fn.system { 'git', 'clone', '--filter=blob:none', '--branch=stable', lazyrepo, lazypath }
+  local out = vim.fn.system { 'git', 'clone', '--filter=blob:none', '--branch=stable', lazyrepo, lazypath }
+  if vim.v.shell_error ~= 0 then
+    error('Error cloning lazy.nvim:\n' .. out)
+  end
 end
 vim.opt.rtp:prepend(lazypath)
 

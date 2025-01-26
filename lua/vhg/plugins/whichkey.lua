@@ -2,15 +2,12 @@
 return { -- Useful plugin to show you pending keybinds.
   'folke/which-key.nvim',
   event = 'VimEnter', -- Sets the loading event to 'VimEnter'
-  init = function()
-    vim.opt.timeout = true
-    vim.opt.timeoutlen = 500
-  end,
-  config = function() -- This is the function that runs, AFTER loading
-    require('which-key').setup()
 
+  opts = {
+    delay = 300, -- default is 500ms
     -- Document existing key chains
-    require('which-key').add {
+    -- TODO: hunk seems to be new
+    spec = {
       { '<leader>b', group = '[B]uffer' },
       { '<leader>c', group = '[C]ode' },
       { '<leader>d', group = '[D]ocument' },
@@ -19,6 +16,6 @@ return { -- Useful plugin to show you pending keybinds.
       { '<leader>r', group = '[R]ename' },
       { '<leader>s', group = '[S]earch' },
       { '<leader>w', group = '[W]orkspace' },
-    }
-  end,
+    },
+  },
 }
